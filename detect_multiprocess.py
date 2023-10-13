@@ -34,6 +34,7 @@ import os
 import platform
 import sys
 import time
+import multiprocessing as mp
 from pathlib import Path
 
 import torch
@@ -284,5 +285,15 @@ def main(opt):
 if __name__ == '__main__':
     start_time = time.time()
     opt = parse_opt()
-    main(opt)
-    print("Tatal Cost Time (Single Process):", time.time() - start_time)
+    source = opt.source
+    img_fns = ['smoke1', 'smoke2']  # 可能需要队列
+    processes = []
+    for img_fn in img_fns:
+        opt.source = os.path.join(source, img_fn)
+        print('processing', opt.source)
+        p = mp.Process(target=main, args=(opt,))
+        p.start()
+        processes.append(p)
+    for p in processes:
+        p.join()
+    print("Tatal Cost Time (Multi Process):", time.time() - start_time)
